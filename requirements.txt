@@ -1,4 +1,0 @@
-google-cloud-ndb==1.2.1
-pytest
-pyre-check
-mypy
