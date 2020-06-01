@@ -13,11 +13,5 @@ setuptools.setup(
     python_requires=">=3",
     install_requires=["google-cloud-ndb == 1.2.1"],
     setup_requires=["pytest-runner"],
-    tests_require=[
-        "pytest",
-        "black",
-        "pyre-check",
-        "flake8",
-        "grpc-stubs",
-    ],
+    tests_require=["pytest", "black", "pyre-check", "flake8", "grpc-stubs",],
 )
