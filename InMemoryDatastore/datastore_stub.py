@@ -1,5 +1,6 @@
 import grpc
 import logging
+import google.cloud.datastore.helpers as ds_helpers
 from google.cloud import ndb
 from google.cloud.datastore_v1 import types
 from google.cloud.datastore_v1.proto import datastore_pb2_grpc
@@ -30,6 +31,15 @@ class _RequestWrapper(grpc.UnaryUnaryMultiCallable):
 
 class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
 
+    _OPERATOR_TO_CMP_METHOD_NAME = {
+        types.PropertyFilter.Operator.LESS_THAN: "__lt__",
+        types.PropertyFilter.Operator.LESS_THAN_OR_EQUAL: "__le__",
+        types.PropertyFilter.Operator.GREATER_THAN: "__gt__",
+        types.PropertyFilter.Operator.GREATER_THAN_OR_EQUAL: "__ge__",
+        types.PropertyFilter.Operator.EQUAL: "__eq__",
+        # TODO missing HAS_ANCESTOR
+    }
+
     seqid: int
     store: Dict[str, _StoredObject]
 
@@ -49,6 +59,7 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
 
         self.Lookup = _RequestWrapper(self._lookup)
         self.Commit = _RequestWrapper(self._commit)
+        self.RunQuery = _RequestWrapper(self._run_query)
 
     def _insert_model(self, model: ndb.Model) -> None:
         ds_key = model.key._key.to_protobuf()
@@ -88,8 +99,68 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
             results.append(result)
         return types.CommitResponse(mutation_results=results, index_updates=0,)
 
+    def _run_query(self, request: types.RunQueryRequest, *args, **kwargs) -> types.RunQueryResponse:
+        # Don't support cloud sql
+        # TODO also figire out error handling
+        assert request.query
+
+        # Query processing will be very naive.
+        query: types.Query = request.query
+        resp_data: List[types._StoredObject] = []
+        for _, stored in self.store.items():
+            if query.kind and stored.entity.key.path[-1].kind != query.kind[0].name:
+                # this doesn't account for ancestor keys
+                continue
+
+            if self._matches_filter(stored, query.filter):
+                resp_data.append(stored)
+
+            if query.limit and len(resp_data) >= query.limit.value:
+                break
+
+        return types.RunQueryResponse(
+            batch=types.QueryResultBatch(
+                entity_result_type=types.EntityResult.ResultType.FULL,  # TODO projection
+                entity_results=[
+                    types.EntityResult(
+                        entity=resp.entity,
+                        version=resp.version,
+                    )
+                    for resp in resp_data
+                ],
+                snapshot_version = self.seqid,
+            )
+        )
+
+    def _put_entity(self, ds_entity: types.Entity, entity_version: int) -> None:
+        self.seqid += 1
+        key_str = ds_entity.key.SerializeToString()
+        self.store[key_str] = _StoredObject(entity=ds_entity, version=entity_version)
+
+    def _get_stored_data(self, key: types.Key) -> Optional[_StoredObject]:
+        key_str = key.SerializeToString()
+        return self.store.get(key_str)
+
+    def _delete_entity(self, key: types.Key) -> None:
+        key_str = key.SerializeToString()
+        if key_str in self.store:
+            del self.store[key_str]
+
+    def _matches_filter(self, stored_obj: _StoredObject, query_filter: types.Filter) -> bool:
+        # TODO also support composite filter
+        assert query_filter.property_filter
+
+        for prop_name, prop_val_pb in stored_obj.entity.properties.items():
+            prop_val = ds_helpers._get_value_from_value_pb(prop_val_pb)
+            if prop_name == query_filter.property_filter.property.name:
+                op = query_filter.property_filter.op
+                filter_val = ds_helpers._get_value_from_value_pb(query_filter.property_filter.value)
+                method_name = self._OPERATOR_TO_CMP_METHOD_NAME.get(op)
+                assert method_name
+                return getattr(prop_val, method_name)(filter_val)
+        return False
+
     def _apply_mutation(self, mutation: types.Mutation) -> types.MutationResult:
-        logging.warning(f"MUTATION {mutation}")
         # TODO will need to potentially do key assignment for insert/upsert
         mutation_key = self._mutation_key(mutation)
         existing_data = self._get_stored_data(mutation_key)
@@ -116,20 +187,6 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
             new_version = existing_data.version + 1 if existing_data else 0
             self._delete_entity(mutation_key)
             return types.MutationResult(key=mutation_key, version=new_version)
-
-    def _put_entity(self, ds_entity: types.Entity, entity_version: int) -> None:
-        self.seqid += 1
-        key_str = ds_entity.key.SerializeToString()
-        self.store[key_str] = _StoredObject(entity=ds_entity, version=entity_version)
-
-    def _get_stored_data(self, key: types.Key) -> Optional[_StoredObject]:
-        key_str = key.SerializeToString()
-        return self.store.get(key_str)
-
-    def _delete_entity(self, key: types.Key) -> None:
-        key_str = key.SerializeToString()
-        if key_str in self.store:
-            del self.store[key_str]
 
     def _mutation_key(self, mutation: types.Mutation) -> types.Key:
         if mutation.insert:
