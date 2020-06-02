@@ -23,7 +23,9 @@ def test_get_existing_by_field(ndb_stub: datastore_stub.LocalDatastoreStub) -> N
     assert query_res == model
 
 
-def test_get_existing_by_field_not_found(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
+def test_get_existing_by_field_not_found(
+    ndb_stub: datastore_stub.LocalDatastoreStub,
+) -> None:
     model = SimpleModel(id="test", str_prop="asdf",)
     ndb_stub._insert_model(model)
 
@@ -31,7 +33,9 @@ def test_get_existing_by_field_not_found(ndb_stub: datastore_stub.LocalDatastore
     assert query_res is None
 
 
-def test_fetch_existing_by_field_multiple(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
+def test_fetch_existing_by_field_multiple(
+    ndb_stub: datastore_stub.LocalDatastoreStub,
+) -> None:
     model1 = SimpleModel(id="test", str_prop="asdf",)
     model2 = SimpleModel(id="test2", str_prop="asdf",)
     ndb_stub._insert_model(model1)
@@ -44,7 +48,27 @@ def test_fetch_existing_by_field_multiple(ndb_stub: datastore_stub.LocalDatastor
     assert query_res == [model1, model2]
 
 
-def test_fetch_existing_by_field_with_limit(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
+def test_fetch_existing_by_field_multiple_with_order(
+    ndb_stub: datastore_stub.LocalDatastoreStub,
+) -> None:
+    model1 = SimpleModel(id="test", str_prop="asdf", int_prop=10)
+    model2 = SimpleModel(id="test2", str_prop="asdf", int_prop=20)
+    ndb_stub._insert_model(model1)
+    ndb_stub._insert_model(model2)
+
+    # We don't pass an ordering here, so the order is not deterministic
+    query_res = (
+        SimpleModel.query(SimpleModel.str_prop == "asdf")
+        .order(SimpleModel.int_prop)
+        .fetch(limit=2)
+    )
+    assert len(query_res) == 2
+    assert query_res == [model1, model2]
+
+
+def test_fetch_existing_by_field_with_limit(
+    ndb_stub: datastore_stub.LocalDatastoreStub,
+) -> None:
     model1 = SimpleModel(id="test", str_prop="asdf",)
     model2 = SimpleModel(id="test2", str_prop="asdf",)
     ndb_stub._insert_model(model1)
@@ -56,7 +80,9 @@ def test_fetch_existing_by_field_with_limit(ndb_stub: datastore_stub.LocalDatast
     assert query_res[0].str_prop == "asdf"
 
 
-def test_fetch_existing_by_field_with_limit_not_hit(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
+def test_fetch_existing_by_field_with_limit_not_hit(
+    ndb_stub: datastore_stub.LocalDatastoreStub,
+) -> None:
     model1 = SimpleModel(id="test", str_prop="asdf",)
     model2 = SimpleModel(id="test2", str_prop="asdfz",)
     ndb_stub._insert_model(model1)

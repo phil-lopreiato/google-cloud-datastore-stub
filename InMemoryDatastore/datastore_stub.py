@@ -99,7 +99,9 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
             results.append(result)
         return types.CommitResponse(mutation_results=results, index_updates=0,)
 
-    def _run_query(self, request: types.RunQueryRequest, *args, **kwargs) -> types.RunQueryResponse:
+    def _run_query(
+        self, request: types.RunQueryRequest, *args, **kwargs
+    ) -> types.RunQueryResponse:
         # Don't support cloud sql
         # TODO also figire out error handling
         assert request.query
@@ -115,20 +117,28 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
             if self._matches_filter(stored, query.filter):
                 resp_data.append(stored)
 
-            if query.limit and len(resp_data) >= query.limit.value:
-                break
+        if query.order:
+            # TODO
+            assert len(query.order) == 1
+            order = query.order[0]
+            resp_data.sort(
+                key=lambda d: ds_helpers._get_value_from_value_pb(
+                    d.entity.properties.get(order.property.name)
+                ),
+                reverse=order.direction == types.PropertyOrder.Direction.DESCENDING,
+            )
+
+        if query.limit:
+            resp_data = resp_data[: query.limit.value]
 
         return types.RunQueryResponse(
             batch=types.QueryResultBatch(
                 entity_result_type=types.EntityResult.ResultType.FULL,  # TODO projection
                 entity_results=[
-                    types.EntityResult(
-                        entity=resp.entity,
-                        version=resp.version,
-                    )
+                    types.EntityResult(entity=resp.entity, version=resp.version,)
                     for resp in resp_data
                 ],
-                snapshot_version = self.seqid,
+                snapshot_version=self.seqid,
             )
         )
 
@@ -146,7 +156,9 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         if key_str in self.store:
             del self.store[key_str]
 
-    def _matches_filter(self, stored_obj: _StoredObject, query_filter: types.Filter) -> bool:
+    def _matches_filter(
+        self, stored_obj: _StoredObject, query_filter: types.Filter
+    ) -> bool:
         # TODO also support composite filter
         assert query_filter.property_filter
 
@@ -154,7 +166,9 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
             prop_val = ds_helpers._get_value_from_value_pb(prop_val_pb)
             if prop_name == query_filter.property_filter.property.name:
                 op = query_filter.property_filter.op
-                filter_val = ds_helpers._get_value_from_value_pb(query_filter.property_filter.value)
+                filter_val = ds_helpers._get_value_from_value_pb(
+                    query_filter.property_filter.value
+                )
                 method_name = self._OPERATOR_TO_CMP_METHOD_NAME.get(op)
                 assert method_name
                 return getattr(prop_val, method_name)(filter_val)
