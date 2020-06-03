@@ -2,7 +2,6 @@ import grpc
 import google.cloud.datastore.helpers as ds_helpers
 from google.cloud import ndb
 from google.cloud.datastore_v1 import types
-from google.cloud.datastore_v1.proto import entity_pb2
 from google.cloud.datastore_v1.proto import datastore_pb2_grpc
 from typing import Dict, List, Optional, NamedTuple
 
@@ -11,7 +10,7 @@ from .futures import InstantFuture
 
 class _StoredObject(NamedTuple):
     version: int
-    entity: entity_pb2.Entity
+    entity: types.Entity
 
 
 class _RequestWrapper(grpc.UnaryUnaryMultiCallable):
@@ -46,10 +45,10 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
     Lookup: _RequestWrapper
     Commit: _RequestWrapper
     RunQuery: _RequestWrapper
-    BeginTransaction: _RequestWrapper
-    Rollback: _RequestWrapper
-    AllocateIds: _RequestWrapper
-    ReserveIds: _RequestWrapper
+    # BeginTransaction: _RequestWrapper
+    # Rollback: _RequestWrapper
+    # AllocateIds: _RequestWrapper
+    # ReserveIds: _RequestWrapper
 
     def __init__(self) -> None:
         # don't call super, we want to do other stuff
@@ -108,7 +107,7 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
 
         # Query processing will be very naive.
         query: types.Query = request.query
-        resp_data: List[types._StoredObject] = []
+        resp_data: List[_StoredObject] = []
         for _, stored in self.store.items():
             if query.kind and stored.entity.key.path[-1].kind != query.kind[0].name:
                 # this doesn't account for ancestor keys
@@ -164,6 +163,7 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         self, stored_obj: _StoredObject, query_filter: types.Filter
     ) -> bool:
         filter_type = query_filter.WhichOneof("filter_type")
+        assert filter_type in ["property_filter", "composite_filter"]
         if filter_type == "property_filter":
             return self._matches_property_filter(
                 stored_obj, query_filter.property_filter
@@ -172,6 +172,7 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
             return self._matches_composite_filter(
                 stored_obj, query_filter.composite_filter
             )
+        return False
 
     def _matches_composite_filter(
         self, stored_obj: _StoredObject, comp_filter: types.CompositeFilter

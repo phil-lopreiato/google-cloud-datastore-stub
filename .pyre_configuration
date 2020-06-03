@@ -3,7 +3,12 @@
     "InMemoryDatastore"
   ],
   "search_path": [
-    { "site-package": "google" },
-    { "site-package": "grpc" }
+    "stubs",
+    {"site-package": "grpc"},
+    {"site-package": "pytest"}
+  ],
+  "exclude": [
+    "stubs",
+    ".eggs"
   ]
 }
