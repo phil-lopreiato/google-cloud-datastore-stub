@@ -23,6 +23,18 @@ def test_get_existing_by_field(ndb_stub: datastore_stub.LocalDatastoreStub) -> N
     assert query_res == model
 
 
+def test_get_existing_by_multi_field(
+    ndb_stub: datastore_stub.LocalDatastoreStub,
+) -> None:
+    model = SimpleModel(id="test", str_prop="asdf", int_prop=42)
+    ndb_stub._insert_model(model)
+
+    query_res = SimpleModel.query(
+        SimpleModel.str_prop == "asdf", SimpleModel.int_prop == 42
+    ).get()
+    assert query_res == model
+
+
 def test_get_existing_by_field_not_found(
     ndb_stub: datastore_stub.LocalDatastoreStub,
 ) -> None:

@@ -121,6 +121,10 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
             # TODO
             assert len(query.order) == 1
             order = query.order[0]
+            assert order.direction in [
+                types.PropertyOrder.Direction.DESCENDING,
+                types.PropertyOrder.Direction.ASCENDING,
+            ]
             resp_data.sort(
                 key=lambda d: ds_helpers._get_value_from_value_pb(
                     d.entity.properties.get(order.property.name)
@@ -159,16 +163,31 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
     def _matches_filter(
         self, stored_obj: _StoredObject, query_filter: types.Filter
     ) -> bool:
-        # TODO also support composite filter
-        assert query_filter.property_filter
+        filter_type = query_filter.WhichOneof("filter_type")
+        if filter_type == "property_filter":
+            return self._matches_property_filter(
+                stored_obj, query_filter.property_filter
+            )
+        elif filter_type == "composite_filter":
+            return self._matches_composite_filter(
+                stored_obj, query_filter.composite_filter
+            )
 
+    def _matches_composite_filter(
+        self, stored_obj: _StoredObject, comp_filter: types.CompositeFilter
+    ) -> bool:
+        assert comp_filter.op == types.CompositeFilter.Operator.AND
+        results = [self._matches_filter(stored_obj, f) for f in comp_filter.filters]
+        return all(results)
+
+    def _matches_property_filter(
+        self, stored_obj: _StoredObject, prop_filter: types.PropertyFilter
+    ) -> bool:
         for prop_name, prop_val_pb in stored_obj.entity.properties.items():
             prop_val = ds_helpers._get_value_from_value_pb(prop_val_pb)
-            if prop_name == query_filter.property_filter.property.name:
-                op = query_filter.property_filter.op
-                filter_val = ds_helpers._get_value_from_value_pb(
-                    query_filter.property_filter.value
-                )
+            if prop_name == prop_filter.property.name:
+                op = prop_filter.op
+                filter_val = ds_helpers._get_value_from_value_pb(prop_filter.value)
                 method_name = self._OPERATOR_TO_CMP_METHOD_NAME.get(op)
                 assert method_name
                 return getattr(prop_val, method_name)(filter_val)
