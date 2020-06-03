@@ -1,5 +1,4 @@
 import grpc
-import logging
 import google.cloud.datastore.helpers as ds_helpers
 from google.cloud import ndb
 from google.cloud.datastore_v1 import types

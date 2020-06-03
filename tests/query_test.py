@@ -167,3 +167,4 @@ def test_put_model_matches_point_query() -> None:
 
     get_resp = SimpleModel.get_by_id("test")
     assert get_resp == model
+    assert model.key == key
