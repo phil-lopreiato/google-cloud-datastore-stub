@@ -1,4 +1,4 @@
-from InMemoryDatastore import datastore_stub
+from InMemoryCloudDatastoreStub import datastore_stub
 from tests.models import SimpleModel
 
 

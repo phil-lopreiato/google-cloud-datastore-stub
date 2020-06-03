@@ -4,7 +4,7 @@ from google.cloud.datastore_v1.proto import datastore_pb2_grpc
 from google.cloud.ndb import _datastore_api
 from _pytest.monkeypatch import MonkeyPatch
 
-from InMemoryDatastore import datastore_stub
+from InMemoryCloudDatastoreStub import datastore_stub
 
 
 @pytest.fixture(autouse=True)
