@@ -2,15 +2,16 @@ import grpc
 import google.cloud.datastore.helpers as ds_helpers
 from google.cloud import ndb
 from google.cloud.datastore_v1 import types
+from google.cloud.datastore_v1.proto import entity_pb2
 from google.cloud.datastore_v1.proto import datastore_pb2_grpc
 from typing import Dict, List, Optional, NamedTuple
 
-from InMemoryDatastore.futures import InstantFuture
+from .futures import InstantFuture
 
 
 class _StoredObject(NamedTuple):
     version: int
-    entity: types.Entity
+    entity: entity_pb2.Entity
 
 
 class _RequestWrapper(grpc.UnaryUnaryMultiCallable):
