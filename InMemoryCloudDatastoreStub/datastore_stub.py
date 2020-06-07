@@ -2,7 +2,7 @@ import google.cloud.datastore.helpers as ds_helpers
 from google.cloud import ndb
 from google.cloud.datastore_v1 import types
 from google.cloud.datastore_v1.proto import datastore_pb2_grpc
-from typing import Dict, List, Optional, NamedTuple
+from typing import List
 
 from ._in_memory_store import _InMemoryStore
 from ._request_wrapper import _RequestWrapper
@@ -49,7 +49,6 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
     def _lookup(
         self, request: types.LookupRequest, *args, **kwargs
     ) -> types.LookupResponse:
-        assert request.read_options.transaction is b""
         found: List[types.EntityResult] = []
         missing: List[types.EntityResult] = []
         transaction_id = request.read_options.transaction
@@ -106,7 +105,6 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         # Don't support cloud sql
         # TODO also figire out error handling
         assert request.query
-        assert request.read_options.transaction is b""
 
         # Query processing will be very naive.
         query: types.Query = request.query

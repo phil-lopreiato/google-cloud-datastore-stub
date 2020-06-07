@@ -1,6 +1,6 @@
 {
   "source_directories": [
-    "InMemoryDatastore"
+    "InMemoryCloudDatastoreStub"
   ],
   "search_path": [
     "stubs",
