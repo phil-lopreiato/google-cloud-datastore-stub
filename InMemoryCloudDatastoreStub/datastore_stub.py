@@ -133,7 +133,7 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
                 reverse=order.direction == types.PropertyOrder.Direction.DESCENDING,
             )
 
-        if query.limit:
+        if query.HasField("limit"):
             resp_data = resp_data[: query.limit.value]
 
         return types.RunQueryResponse(
@@ -151,6 +151,10 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         self, stored_obj: _StoredObject, query_filter: types.Filter
     ) -> bool:
         filter_type = query_filter.WhichOneof("filter_type")
+        if filter_type is None:
+            # If doing a query for all entities, filter will be None
+            return True
+
         assert filter_type in ["property_filter", "composite_filter"]
         if filter_type == "property_filter":
             return self._matches_property_filter(

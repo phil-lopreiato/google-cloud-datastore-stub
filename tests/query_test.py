@@ -1,4 +1,5 @@
 from InMemoryCloudDatastoreStub import datastore_stub
+from google.cloud import ndb
 from tests.models import SimpleModel
 
 
@@ -168,3 +169,31 @@ def test_put_model_matches_point_query() -> None:
     get_resp = SimpleModel.get_by_id("test")
     assert get_resp == model
     assert model.key == key
+
+
+def test_query_all() -> None:
+    stored_keys = ndb.put_multi(
+        [SimpleModel(id=f"test{i}", int_prop=i) for i in range(10)]
+    )
+    assert len(stored_keys) == 10
+
+    query_all = SimpleModel.query().order(SimpleModel.int_prop).fetch()
+    assert len(query_all) == 10
+    for i, model in enumerate(query_all):
+        assert model.int_prop == i
+
+
+def test_query_in_range() -> None:
+    stored_keys = ndb.put_multi(
+        [SimpleModel(id=f"test{i}", int_prop=i) for i in range(10)]
+    )
+    assert len(stored_keys) == 10
+
+    resp = (
+        SimpleModel.query(SimpleModel.int_prop >= 1, SimpleModel.int_prop < 5)
+        .order(SimpleModel.int_prop)
+        .fetch()
+    )
+    assert len(resp) == 4
+    for i, model in enumerate(resp):
+        assert model.int_prop == i + 1
