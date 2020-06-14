@@ -136,13 +136,43 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         if query.HasField("limit"):
             resp_data = resp_data[: query.limit.value]
 
+        if query.projection:
+            projection_fields = [p.property.name for p in query.projection]
+            if projection_fields == ["__key__"]:
+                result_type = types.EntityResult.ResultType.KEY_ONLY
+                entity_results = [
+                    types.EntityResult(
+                        entity=types.Entity(key=resp.entity.key), version=resp.version
+                    )
+                    for resp in resp_data
+                ]
+            else:
+                result_type = types.EntityResult.ResultType.PROJECTION
+                entity_results = [
+                    types.EntityResult(
+                        entity=types.Entity(
+                            key=resp.entity.key,
+                            properties={
+                                k: v
+                                for k, v in resp.entity.properties.items()
+                                if k in projection_fields
+                            },
+                        ),
+                        version=resp.version,
+                    )
+                    for resp in resp_data
+                ]
+        else:
+            result_type = types.EntityResult.ResultType.FULL
+            entity_results = [
+                types.EntityResult(entity=resp.entity, version=resp.version)
+                for resp in resp_data
+            ]
+
         return types.RunQueryResponse(
             batch=types.QueryResultBatch(
-                entity_result_type=types.EntityResult.ResultType.FULL,  # TODO projection
-                entity_results=[
-                    types.EntityResult(entity=resp.entity, version=resp.version,)
-                    for resp in resp_data
-                ],
+                entity_result_type=result_type,
+                entity_results=entity_results,
                 snapshot_version=self.store.seqid(transaction_id),
             )
         )

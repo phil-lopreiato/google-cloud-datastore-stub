@@ -1,3 +1,4 @@
+import pytest
 from InMemoryCloudDatastoreStub import datastore_stub
 from google.cloud import ndb
 from tests.models import SimpleModel
@@ -197,3 +198,27 @@ def test_query_in_range() -> None:
     assert len(resp) == 4
     for i, model in enumerate(resp):
         assert model.int_prop == i + 1
+
+
+def test_query_keys_only() -> None:
+    stored_keys = ndb.put_multi(
+        [SimpleModel(id=f"test{i}", int_prop=i) for i in range(10)]
+    )
+    assert len(stored_keys) == 10
+
+    resp = SimpleModel.query().fetch(keys_only=True)
+    assert len(resp) == 10
+    assert all(isinstance(i, ndb.Key) for i in resp)
+
+
+def test_query_projection() -> None:
+    stored_keys = ndb.put_multi(
+        [SimpleModel(id=f"test{i}", int_prop=i, str_prop=f"{i}") for i in range(10)]
+    )
+    assert len(stored_keys) == 10
+
+    resp = SimpleModel.query().fetch(projection=[SimpleModel.int_prop])
+    assert len(resp) == 10
+    assert all(i.int_prop is not None for i in resp)
+    with pytest.raises(ndb.model.UnprojectedPropertyError):
+        assert all(i.str_prop is None for i in resp)
