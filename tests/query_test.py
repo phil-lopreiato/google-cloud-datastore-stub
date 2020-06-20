@@ -1,7 +1,7 @@
 import pytest
 from InMemoryCloudDatastoreStub import datastore_stub
 from google.cloud import ndb
-from tests.models import SimpleModel
+from tests.models import RepeatedPropertyModel, SimpleModel
 
 
 def test_get_nonexistent_key() -> None:
@@ -169,6 +169,16 @@ def test_put_model_matches_point_query() -> None:
 
     get_resp = SimpleModel.get_by_id("test")
     assert get_resp == model
+    assert model.key == key
+
+
+def test_put_model_with_repeated_property() -> None:
+    model = RepeatedPropertyModel(id="test", int_props=[1, 2, 3])
+    key = model.put()
+
+    get_resp = RepeatedPropertyModel.get_by_id("test")
+    assert get_resp == model
+    assert get_resp.int_props == [1, 2, 3]
     assert model.key == key
 
 
