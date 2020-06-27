@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="InMemoryCloudDatastoreStub",
-    version="0.0.5",
+    version="0.0.6",
     description="An in-memory stub implementation of Google Cloud Datastore for use in unit tests",
     long_description=long_description,
     long_description_content_type="text/markdown",
