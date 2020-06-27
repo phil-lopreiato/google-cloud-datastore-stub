@@ -8,3 +8,7 @@ class SimpleModel(ndb.Model):
 
 class RepeatedPropertyModel(ndb.Model):
     int_props = ndb.IntegerProperty(repeated=True)
+
+
+class KeyPropertyModel(ndb.Model):
+    model_ref = ndb.KeyProperty(kind=SimpleModel)
