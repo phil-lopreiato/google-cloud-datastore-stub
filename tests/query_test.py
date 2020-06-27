@@ -253,3 +253,20 @@ def test_query_for_key_prop_filter() -> None:
     assert len(resp) == 1
     assert resp[0] == KeyPropertyModel.get_by_id("test")
     assert resp[0].model_ref.get() == SimpleModel.get_by_id("test")
+
+
+def test_query_for_key_prop_unset() -> None:
+    KeyPropertyModel(id="test", model_ref=None).put()
+
+    resp = KeyPropertyModel.query(
+        KeyPropertyModel.model_ref == ndb.Key(SimpleModel, "test")
+    ).fetch()
+    assert len(resp) == 0
+
+
+def test_query_for_key_prop_unset_in_query() -> None:
+    KeyPropertyModel(id="test", model_ref=None).put()
+
+    resp = KeyPropertyModel.query(KeyPropertyModel.model_ref == None).fetch()
+    assert len(resp) == 1
+    assert resp[0] == KeyPropertyModel.get_by_id("test")

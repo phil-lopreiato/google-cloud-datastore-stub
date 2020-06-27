@@ -213,5 +213,8 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
                 filter_val = ds_helpers._get_value_from_value_pb(prop_filter.value)
                 method_name = self._OPERATOR_TO_CMP_METHOD_NAME.get(op)
                 assert method_name
-                return getattr(prop_val, method_name)(filter_val)
+                res = getattr(prop_val, method_name)(filter_val)
+                if res is NotImplemented:
+                    return False
+                return res
         return False
