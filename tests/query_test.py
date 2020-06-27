@@ -235,7 +235,9 @@ def test_query_projection() -> None:
 
 
 def test_query_for_key_prop_none() -> None:
-    resp = KeyPropertyModel.query(KeyPropertyModel.model_ref == ndb.Key(SimpleModel, "test")).fetch()
+    resp = KeyPropertyModel.query(
+        KeyPropertyModel.model_ref == ndb.Key(SimpleModel, "test")
+    ).fetch()
     assert resp == []
 
 
@@ -245,7 +247,9 @@ def test_query_for_key_prop_filter() -> None:
     SimpleModel(id="test2").put()
     KeyPropertyModel(id="test", model_ref=ndb.Key(SimpleModel, "test")).put()
 
-    resp = KeyPropertyModel.query(KeyPropertyModel.model_ref == ndb.Key(SimpleModel, "test")).fetch()
+    resp = KeyPropertyModel.query(
+        KeyPropertyModel.model_ref == ndb.Key(SimpleModel, "test")
+    ).fetch()
     assert len(resp) == 1
     assert resp[0] == KeyPropertyModel.get_by_id("test")
     assert resp[0].model_ref.get() == SimpleModel.get_by_id("test")
