@@ -182,6 +182,26 @@ def test_put_model_with_repeated_property() -> None:
     assert model.key == key
 
 
+def test_query_for_repeated_property() -> None:
+    model = RepeatedPropertyModel(id="test", int_props=[1, 2, 3])
+    key = model.put()
+
+    get_resp = RepeatedPropertyModel.query(RepeatedPropertyModel.int_props == 2).fetch()
+    assert len(get_resp) == 1
+    assert get_resp[0].key == key
+
+
+def test_query_in_repeated_property() -> None:
+    model = RepeatedPropertyModel(id="test", int_props=[1, 2, 3])
+    key = model.put()
+
+    get_resp = RepeatedPropertyModel.query(
+        RepeatedPropertyModel.int_props.IN([2, 3, 4])
+    ).fetch()
+    assert len(get_resp) == 1
+    assert get_resp[0].key == key
+
+
 def test_query_all() -> None:
     stored_keys = ndb.put_multi(
         [SimpleModel(id=f"test{i}", int_prop=i) for i in range(10)]

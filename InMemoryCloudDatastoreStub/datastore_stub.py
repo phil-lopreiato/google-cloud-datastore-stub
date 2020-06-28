@@ -207,13 +207,22 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         self, stored_obj: _StoredObject, prop_filter: types.PropertyFilter
     ) -> bool:
         for prop_name, prop_val_pb in stored_obj.entity.properties.items():
+            prop_type = prop_val_pb.WhichOneof("value_type")
             prop_val = ds_helpers._get_value_from_value_pb(prop_val_pb)
             if prop_name == prop_filter.property.name:
                 op = prop_filter.op
                 filter_val = ds_helpers._get_value_from_value_pb(prop_filter.value)
                 method_name = self._OPERATOR_TO_CMP_METHOD_NAME.get(op)
                 assert method_name
-                res = getattr(prop_val, method_name)(filter_val)
+
+                if prop_type == "array_value":
+                    # For repeated properties, we need to unpack them
+                    res = any(
+                        getattr(p, method_name)(filter_val) == True for p in prop_val
+                    )
+                else:
+                    res = getattr(prop_val, method_name)(filter_val)
+
                 if res is NotImplemented:
                     return False
                 return res
