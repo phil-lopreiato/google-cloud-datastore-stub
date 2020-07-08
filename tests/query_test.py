@@ -1,7 +1,12 @@
 import pytest
 from InMemoryCloudDatastoreStub import datastore_stub
 from google.cloud import ndb
-from tests.models import RepeatedPropertyModel, SimpleModel, KeyPropertyModel
+from tests.models import (
+    ChildModel,
+    RepeatedPropertyModel,
+    SimpleModel,
+    KeyPropertyModel,
+)
 
 
 def test_get_nonexistent_key() -> None:
@@ -290,3 +295,16 @@ def test_query_for_key_prop_unset_in_query() -> None:
     resp = KeyPropertyModel.query(KeyPropertyModel.model_ref == None).fetch()
     assert len(resp) == 1
     assert resp[0] == KeyPropertyModel.get_by_id("test")
+
+
+def test_ancestor_query() -> None:
+    parent_model = SimpleModel(id="parent", str_prop="parent_model")
+    parent_model.put()
+
+    child_model = ChildModel(
+        id="child", parent=parent_model.key, str_prop="child_model"
+    )
+    child_model.put()
+
+    child_query = ChildModel.query(ancestor=parent_model.key).fetch()
+    assert child_query == [child_model]

@@ -6,6 +6,10 @@ class SimpleModel(ndb.Model):
     int_prop = ndb.IntegerProperty()
 
 
+class ChildModel(ndb.Model):
+    str_prop = ndb.StringProperty()
+
+
 class RepeatedPropertyModel(ndb.Model):
     int_props = ndb.IntegerProperty(repeated=True)
 

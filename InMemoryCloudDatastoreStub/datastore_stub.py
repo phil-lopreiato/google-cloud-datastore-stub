@@ -18,7 +18,6 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         types.PropertyFilter.Operator.GREATER_THAN: "__gt__",
         types.PropertyFilter.Operator.GREATER_THAN_OR_EQUAL: "__ge__",
         types.PropertyFilter.Operator.EQUAL: "__eq__",
-        # TODO missing HAS_ANCESTOR
     }
 
     store: _InMemoryStore
@@ -112,7 +111,6 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         resp_data: List[_StoredObject] = []
         for _, stored in self.store.items(transaction_id):
             if query.kind and stored.entity.key.path[-1].kind != query.kind[0].name:
-                # this doesn't account for ancestor keys
                 continue
 
             if self._matches_filter(stored, query.filter):
@@ -206,24 +204,38 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
     def _matches_property_filter(
         self, stored_obj: _StoredObject, prop_filter: types.PropertyFilter
     ) -> bool:
-        for prop_name, prop_val_pb in stored_obj.entity.properties.items():
-            prop_type = prop_val_pb.WhichOneof("value_type")
-            prop_val = ds_helpers._get_value_from_value_pb(prop_val_pb)
-            if prop_name == prop_filter.property.name:
-                op = prop_filter.op
-                filter_val = ds_helpers._get_value_from_value_pb(prop_filter.value)
-                method_name = self._OPERATOR_TO_CMP_METHOD_NAME.get(op)
-                assert method_name
+        op = prop_filter.op
+        name = prop_filter.property.name
+        filter_val = ds_helpers._get_value_from_value_pb(prop_filter.value)
 
-                if prop_type == "array_value":
-                    # For repeated properties, we need to unpack them
-                    res = any(
-                        getattr(p, method_name)(filter_val) == True for p in prop_val
-                    )
-                else:
-                    res = getattr(prop_val, method_name)(filter_val)
+        # Handle ancestor queries. Only supports a single level for now
+        if op == types.PropertyFilter.Operator.HAS_ANCESTOR:
+            assert (
+                name == "__key__"
+                and prop_filter.value.WhichOneof("value_type") == "key_value"
+            )
+            assert len(prop_filter.value.key_value.path) == 1
+            return (
+                prop_filter.value.key_value.path[0] in stored_obj.entity.key.path[:-1]
+            )
 
-                if res is NotImplemented:
-                    return False
-                return res
-        return False
+        # If the field we're looking for doesn't exist on this model, bail
+        if not name in stored_obj.entity.properties:
+            return False
+
+        # Otherwise, compare the field against the value in the filter
+        prop_val_pb = stored_obj.entity.properties[name]
+        prop_val = ds_helpers._get_value_from_value_pb(prop_val_pb)
+        method_name = self._OPERATOR_TO_CMP_METHOD_NAME.get(op)
+        assert method_name
+
+        prop_type = prop_val_pb.WhichOneof("value_type")
+        if prop_type == "array_value":
+            # For repeated properties, we need to unpack them
+            res = any(getattr(p, method_name)(filter_val) == True for p in prop_val)
+        else:
+            res = getattr(prop_val, method_name)(filter_val)
+
+        if res is NotImplemented:
+            return False
+        return res
