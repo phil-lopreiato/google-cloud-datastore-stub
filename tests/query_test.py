@@ -177,6 +177,18 @@ def test_put_model_matches_point_query() -> None:
     assert model.key == key
 
 
+def test_put_model_no_id() -> None:
+    model1 = SimpleModel(str_prop="asdf")
+    model2 = SimpleModel(str_prop="hjkl")
+    model1.put()
+    model2.put()
+
+    stored = SimpleModel.query().fetch()
+    assert stored == [model1, model2]
+    assert stored[0].key.id() == 1
+    assert stored[1].key.id() == 2
+
+
 def test_put_model_with_repeated_property() -> None:
     model = RepeatedPropertyModel(id="test", int_props=[1, 2, 3])
     key = model.put()

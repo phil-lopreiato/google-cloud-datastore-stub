@@ -9,11 +9,13 @@ from ._transactions import _InFlightTransaction, _TransactionType
 class _InMemoryStore(object):
 
     _seqid: int
+    _next_id: int
     _store: Dict[str, _StoredObject]
     _transactions: Dict[bytes, _InFlightTransaction]
 
     def __init__(self) -> None:
         self._seqid = 0
+        self._next_id = 1
         self._store = {}
         self._transactions = {}
 
@@ -125,13 +127,25 @@ class _InMemoryStore(object):
     def _mutation_key(self, mutation: types.Mutation) -> types.Key:
         operation = mutation.WhichOneof("operation")
         if operation == "insert":
-            return mutation.insert.key
+            op = mutation.insert
         elif operation == "update":
-            return mutation.update.key
+            op = mutation.update
         elif operation == "upsert":
-            return mutation.upsert.key
+            op = mutation.upsert
         elif operation == "delete":
-            return mutation.delete.key
+            op = mutation.delete
+
+        key = self._maybe_assign_key(op.key)
+        op.key.CopyFrom(key)
+        return key
+
+    def _maybe_assign_key(self, key: types.Key) -> types.Key:
+        id_type = key.path[-1].WhichOneof("id_type")
+        if id_type is None:
+            key.path[-1].id = self._next_id
+            self._next_id += 1
+        return key
+
 
     def _mutation_conflict(
         self, key: types.Key, old_version: int
