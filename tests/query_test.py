@@ -309,6 +309,19 @@ def test_query_for_key_prop_unset_in_query() -> None:
     assert resp[0] == KeyPropertyModel.get_by_id("test")
 
 
+def test_query_with_None() -> None:
+    m1 = SimpleModel(str_prop="asdf", int_prop=10)
+    m2 = SimpleModel(str_prop="aaaa", int_prop=None)
+    m1.put()
+    m2.put()
+
+    resp1 = SimpleModel.query(SimpleModel.int_prop != None).fetch()
+    assert resp1 == [m1]
+
+    resp2 = SimpleModel.query(SimpleModel.int_prop == None).fetch()
+    assert resp2 == [m2]
+
+
 def test_ancestor_query() -> None:
     parent_model = SimpleModel(id="parent", str_prop="parent_model")
     parent_model.put()

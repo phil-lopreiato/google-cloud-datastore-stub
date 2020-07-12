@@ -233,6 +233,20 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         if prop_type == "array_value":
             # For repeated properties, we need to unpack them
             res = any(getattr(p, method_name)(filter_val) == True for p in prop_val)
+        elif filter_val is None:
+            # Need to mimic python2 comparisons, where None is smaller than anything
+            if op == types.PropertyFilter.Operator.GREATER_THAN_OR_EQUAL:
+                res = True
+            elif op == types.PropertyFilter.Operator.LESS_THAN_OR_EQUAL:
+                res = prop_val is None
+            elif op == types.PropertyFilter.Operator.LESS_THAN:
+                res = False
+            elif op == types.PropertyFilter.Operator.GREATER_THAN:
+                res = prop_val is not None
+            elif op == types.PropertyFilter.Operator.EQUAL:
+                res = prop_val is None
+            else:
+                res = False
         else:
             res = getattr(prop_val, method_name)(filter_val)
 

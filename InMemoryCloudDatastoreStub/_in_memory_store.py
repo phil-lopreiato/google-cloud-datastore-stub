@@ -146,7 +146,6 @@ class _InMemoryStore(object):
             self._next_id += 1
         return key
 
-
     def _mutation_conflict(
         self, key: types.Key, old_version: int
     ) -> types.MutationResult:
