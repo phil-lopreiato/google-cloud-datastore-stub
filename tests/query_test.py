@@ -153,6 +153,14 @@ def test_fetch_existing_by_le(ndb_stub: datastore_stub.LocalDatastoreStub) -> No
     assert len(query_res) == 2
 
 
+def test_count_existing_by_field(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
+    model = SimpleModel(id="test", str_prop="asdf",)
+    ndb_stub._insert_model(model)
+
+    count = SimpleModel.query(SimpleModel.str_prop == "asdf").count()
+    assert count == 1
+
+
 def test_put_model() -> None:
     model = SimpleModel(id="test", str_prop="asdf")
     key = model.put()
@@ -333,3 +341,21 @@ def test_ancestor_query() -> None:
 
     child_query = ChildModel.query(ancestor=parent_model.key).fetch()
     assert child_query == [child_model]
+
+
+def test_query_count_async(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
+    model = SimpleModel(id="test", str_prop="asdf")
+    model.put()
+
+    count = SimpleModel.query().filter(SimpleModel.str_prop == "asdf").count_async()
+    assert count.get_result() == 1
+
+
+def test_query_count_async_not_found(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
+    model = SimpleModel(id="test", str_prop="asdf")
+    model.put()
+
+    count = SimpleModel.query().filter(SimpleModel.str_prop == "foo").count_async()
+    assert count.get_result() == 0
+
+

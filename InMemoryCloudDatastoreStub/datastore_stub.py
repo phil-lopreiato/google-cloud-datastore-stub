@@ -131,6 +131,14 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
                 reverse=order.direction == types.PropertyOrder.Direction.DESCENDING,
             )
 
+        original_length = len(resp_data)
+        skipped_results = 0
+        results_after_limit = 0
+
+        # Handle offset
+        resp_data = resp_data[query.offset : ]
+        skipped_results = original_length - len(resp_data)
+
         if query.HasField("limit"):
             resp_data = resp_data[: query.limit.value]
 
@@ -167,8 +175,15 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
                 for resp in resp_data
             ]
 
+        if results_after_limit > 0:
+            more_results = types.QueryResultBatch.MoreResultsType.MORE_RESULTS_AFTER_LIMIT
+        else:
+            more_results = types.QueryResultBatch.MoreResultsType.NO_MORE_RESULTS
+
         return types.RunQueryResponse(
             batch=types.QueryResultBatch(
+                skipped_results=skipped_results,
+                more_results=more_results,
                 entity_result_type=result_type,
                 entity_results=entity_results,
                 snapshot_version=self.store.seqid(transaction_id),
