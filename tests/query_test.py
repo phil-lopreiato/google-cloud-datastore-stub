@@ -207,6 +207,16 @@ def test_put_model_with_repeated_property() -> None:
     assert model.key == key
 
 
+def test_delete_model(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
+    model = SimpleModel(id="test", str_prop="asdf",)
+    ndb_stub._insert_model(model)
+
+    key = ndb.Key(SimpleModel, "test")
+    key.delete()
+
+    assert SimpleModel.get_by_id("test") is None
+
+
 def test_query_for_repeated_property() -> None:
     model = RepeatedPropertyModel(id="test", int_props=[1, 2, 3])
     key = model.put()

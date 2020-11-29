@@ -133,7 +133,8 @@ class _InMemoryStore(object):
         elif operation == "upsert":
             op = mutation.upsert
         elif operation == "delete":
-            op = mutation.delete
+            key = mutation.delete
+            return key
 
         key = self._maybe_assign_key(op.key)
         op.key.CopyFrom(key)
