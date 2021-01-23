@@ -112,13 +112,20 @@ class _InMemoryStore(object):
         elif operation == "update":
             # TODO figure out better error handling
             assert existing_data is not None
-            if existing_data.version != mutation.base_version:
+            if (
+                mutation.HasField("base_version")
+                and existing_data.version != mutation.base_version
+            ):
                 return self._mutation_conflict(mutation_key, existing_data.version)
             new_version = existing_data.version + 1
             self.put(mutation.upsert, new_version, None)
             return types.MutationResult(key=mutation_key, version=new_version)
         elif operation == "upsert":
-            if existing_data and existing_data.version != mutation.base_version:
+            if (
+                existing_data
+                and mutation.HasField("base_version")
+                and existing_data.version != mutation.base_version
+            ):
                 return self._mutation_conflict(mutation_key, existing_data.version)
             new_version = existing_data.version + 1 if existing_data else 0
             self.put(mutation.upsert, new_version, None)
