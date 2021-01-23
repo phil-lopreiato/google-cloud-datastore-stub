@@ -44,3 +44,22 @@ jobs:
         run: pip install tox
       - name: Run Tox
         run: tox -e py
+
+  publish:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [tox-meta, py-tests]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install setuptools wheel
+      - name: Build Release
+        run: python setup.py sdist bdist_wheel
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
