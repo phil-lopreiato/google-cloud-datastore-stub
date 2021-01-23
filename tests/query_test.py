@@ -379,7 +379,9 @@ def test_query_for_key_prop_unset() -> None:
 def test_query_for_key_prop_unset_in_query() -> None:
     KeyPropertyModel(id="test", model_ref=None).put()
 
-    resp = KeyPropertyModel.query(KeyPropertyModel.model_ref == None).fetch()
+    resp = KeyPropertyModel.query(
+        KeyPropertyModel.model_ref == None  # noqa: E711
+    ).fetch()
     assert len(resp) == 1
     assert resp[0] == KeyPropertyModel.get_by_id("test")
 
@@ -390,10 +392,10 @@ def test_query_with_None() -> None:
     m1.put()
     m2.put()
 
-    resp1 = SimpleModel.query(SimpleModel.int_prop != None).fetch()
+    resp1 = SimpleModel.query(SimpleModel.int_prop != None).fetch()  # noqa: E711
     assert resp1 == [m1]
 
-    resp2 = SimpleModel.query(SimpleModel.int_prop == None).fetch()
+    resp2 = SimpleModel.query(SimpleModel.int_prop == None).fetch()  # noqa: E711
     assert resp2 == [m2]
 
 

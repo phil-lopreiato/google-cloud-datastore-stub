@@ -245,7 +245,7 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
             )
 
         # If the field we're looking for doesn't exist on this model, bail
-        if not name in stored_obj.entity.properties:
+        if name not in stored_obj.entity.properties:
             return False
 
         # Otherwise, compare the field against the value in the filter
@@ -257,7 +257,7 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         prop_type = prop_val_pb.WhichOneof("value_type")
         if prop_type == "array_value":
             # For repeated properties, we need to unpack them
-            res = any(getattr(p, method_name)(filter_val) == True for p in prop_val)
+            res = any(getattr(p, method_name)(filter_val) is True for p in prop_val)
         elif filter_val is None:
             # Need to mimic python2 comparisons, where None is smaller than anything
             if op == types.PropertyFilter.Operator.GREATER_THAN_OR_EQUAL:

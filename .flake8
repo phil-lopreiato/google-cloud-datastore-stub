@@ -4,3 +4,10 @@
 max-line-length = 88
 select = C,E,F,W,B,B950
 ignore = E203, E501, W503
+exclude =
+    .eggs,
+    .git,
+    .pyre,
+    __pycache__,
+    build,
+    venv,
