@@ -3,6 +3,7 @@ build/
 dist/
 .mypy_cache/
 .pyre/
+.tox/
 .coverage
 .eggs/
 *.egg-info

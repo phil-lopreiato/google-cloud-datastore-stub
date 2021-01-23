@@ -8,6 +8,7 @@ exclude =
     .eggs,
     .git,
     .pyre,
+    .tox,
     __pycache__,
     build,
     venv,
