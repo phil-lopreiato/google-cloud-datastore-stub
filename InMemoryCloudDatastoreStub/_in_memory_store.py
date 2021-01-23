@@ -32,7 +32,9 @@ class _InMemoryStore(object):
     ) -> None:
         key_str = ds_entity.key.SerializeToString()
         if transaction_id and transaction_id in self._transactions:
-            mutation = types.Mutation(upsert=ds_entity,)
+            mutation = types.Mutation(
+                upsert=ds_entity,
+            )
             self._transactions[transaction_id].mutations.append(mutation)
         else:
             self._seqid += 1
@@ -52,7 +54,9 @@ class _InMemoryStore(object):
     def delete(self, key: types.Key, transaction_id: Optional[bytes]) -> None:
         key_str = key.SerializeToString()
         if transaction_id and transaction_id in self._transactions:
-            mutation = types.Mutation(delete=key,)
+            mutation = types.Mutation(
+                delete=key,
+            )
             self._transactions[transaction_id].mutations.append(mutation)
         else:
             if key_str in self._store:
@@ -151,5 +155,7 @@ class _InMemoryStore(object):
         self, key: types.Key, old_version: int
     ) -> types.MutationResult:
         return types.MutationResult(
-            key=key, version=old_version, conflict_detected=True,
+            key=key,
+            version=old_version,
+            conflict_detected=True,
         )

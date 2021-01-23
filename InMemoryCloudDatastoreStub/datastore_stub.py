@@ -68,7 +68,10 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
                     )
                 )
 
-        return types.LookupResponse(found=found, missing=missing,)
+        return types.LookupResponse(
+            found=found,
+            missing=missing,
+        )
 
     def _begin_transaction(
         self, request: types.BeginTransactionRequest, *args, **kwargs
@@ -82,7 +85,9 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         assert transaction_mode is not None
         transaction_id = self.store.beginTransaction(transaction_mode)
 
-        return types.BeginTransactionResponse(transaction=transaction_id,)
+        return types.BeginTransactionResponse(
+            transaction=transaction_id,
+        )
 
     def _commit(
         self, request: types.CommitRequest, *args, **kwargs
@@ -90,7 +95,10 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         results: List[types.MutationResult] = self.store.commitTransaction(
             request.transaction, request.mutations
         )
-        return types.CommitResponse(mutation_results=results, index_updates=0,)
+        return types.CommitResponse(
+            mutation_results=results,
+            index_updates=0,
+        )
 
     def _rollback(
         self, request: types.RollbackRequest, *args, **kwargs
@@ -136,7 +144,7 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         results_after_limit = 0
 
         # Handle offset
-        resp_data = resp_data[query.offset : ]
+        resp_data = resp_data[query.offset :]
         skipped_results = original_length - len(resp_data)
 
         if query.HasField("limit"):
@@ -176,7 +184,9 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
             ]
 
         if results_after_limit > 0:
-            more_results = types.QueryResultBatch.MoreResultsType.MORE_RESULTS_AFTER_LIMIT
+            more_results = (
+                types.QueryResultBatch.MoreResultsType.MORE_RESULTS_AFTER_LIMIT
+            )
         else:
             more_results = types.QueryResultBatch.MoreResultsType.NO_MORE_RESULTS
 

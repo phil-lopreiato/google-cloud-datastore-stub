@@ -15,7 +15,10 @@ def test_get_nonexistent_key() -> None:
 
 
 def test_get_existing_by_id(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
-    model = SimpleModel(id="test", str_prop="asdf",)
+    model = SimpleModel(
+        id="test",
+        str_prop="asdf",
+    )
     ndb_stub._insert_model(model)
 
     model_res = SimpleModel.get_by_id("test")
@@ -23,7 +26,10 @@ def test_get_existing_by_id(ndb_stub: datastore_stub.LocalDatastoreStub) -> None
 
 
 def test_get_existing_by_field(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
-    model = SimpleModel(id="test", str_prop="asdf",)
+    model = SimpleModel(
+        id="test",
+        str_prop="asdf",
+    )
     ndb_stub._insert_model(model)
 
     query_res = SimpleModel.query(SimpleModel.str_prop == "asdf").get()
@@ -45,7 +51,10 @@ def test_get_existing_by_multi_field(
 def test_get_existing_by_field_not_found(
     ndb_stub: datastore_stub.LocalDatastoreStub,
 ) -> None:
-    model = SimpleModel(id="test", str_prop="asdf",)
+    model = SimpleModel(
+        id="test",
+        str_prop="asdf",
+    )
     ndb_stub._insert_model(model)
 
     query_res = SimpleModel.query(SimpleModel.str_prop == "foo").get()
@@ -55,8 +64,14 @@ def test_get_existing_by_field_not_found(
 def test_fetch_existing_by_field_multiple(
     ndb_stub: datastore_stub.LocalDatastoreStub,
 ) -> None:
-    model1 = SimpleModel(id="test", str_prop="asdf",)
-    model2 = SimpleModel(id="test2", str_prop="asdf",)
+    model1 = SimpleModel(
+        id="test",
+        str_prop="asdf",
+    )
+    model2 = SimpleModel(
+        id="test2",
+        str_prop="asdf",
+    )
     ndb_stub._insert_model(model1)
     ndb_stub._insert_model(model2)
 
@@ -88,8 +103,14 @@ def test_fetch_existing_by_field_multiple_with_order(
 def test_fetch_existing_by_field_with_limit(
     ndb_stub: datastore_stub.LocalDatastoreStub,
 ) -> None:
-    model1 = SimpleModel(id="test", str_prop="asdf",)
-    model2 = SimpleModel(id="test2", str_prop="asdf",)
+    model1 = SimpleModel(
+        id="test",
+        str_prop="asdf",
+    )
+    model2 = SimpleModel(
+        id="test2",
+        str_prop="asdf",
+    )
     ndb_stub._insert_model(model1)
     ndb_stub._insert_model(model2)
 
@@ -102,8 +123,14 @@ def test_fetch_existing_by_field_with_limit(
 def test_fetch_existing_by_field_with_limit_not_hit(
     ndb_stub: datastore_stub.LocalDatastoreStub,
 ) -> None:
-    model1 = SimpleModel(id="test", str_prop="asdf",)
-    model2 = SimpleModel(id="test2", str_prop="asdfz",)
+    model1 = SimpleModel(
+        id="test",
+        str_prop="asdf",
+    )
+    model2 = SimpleModel(
+        id="test2",
+        str_prop="asdfz",
+    )
     ndb_stub._insert_model(model1)
     ndb_stub._insert_model(model2)
 
@@ -114,8 +141,14 @@ def test_fetch_existing_by_field_with_limit_not_hit(
 
 
 def test_fetch_existing_by_gt(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
-    model1 = SimpleModel(id="test", int_prop=42,)
-    model2 = SimpleModel(id="test2", int_prop=43,)
+    model1 = SimpleModel(
+        id="test",
+        int_prop=42,
+    )
+    model2 = SimpleModel(
+        id="test2",
+        int_prop=43,
+    )
     ndb_stub._insert_model(model1)
     ndb_stub._insert_model(model2)
 
@@ -124,8 +157,14 @@ def test_fetch_existing_by_gt(ndb_stub: datastore_stub.LocalDatastoreStub) -> No
 
 
 def test_fetch_existing_by_ge(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
-    model1 = SimpleModel(id="test", int_prop=42,)
-    model2 = SimpleModel(id="test2", int_prop=43,)
+    model1 = SimpleModel(
+        id="test",
+        int_prop=42,
+    )
+    model2 = SimpleModel(
+        id="test2",
+        int_prop=43,
+    )
     ndb_stub._insert_model(model1)
     ndb_stub._insert_model(model2)
 
@@ -134,8 +173,14 @@ def test_fetch_existing_by_ge(ndb_stub: datastore_stub.LocalDatastoreStub) -> No
 
 
 def test_fetch_existing_by_lt(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
-    model1 = SimpleModel(id="test", int_prop=42,)
-    model2 = SimpleModel(id="test2", int_prop=43,)
+    model1 = SimpleModel(
+        id="test",
+        int_prop=42,
+    )
+    model2 = SimpleModel(
+        id="test2",
+        int_prop=43,
+    )
     ndb_stub._insert_model(model1)
     ndb_stub._insert_model(model2)
 
@@ -144,8 +189,14 @@ def test_fetch_existing_by_lt(ndb_stub: datastore_stub.LocalDatastoreStub) -> No
 
 
 def test_fetch_existing_by_le(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
-    model1 = SimpleModel(id="test", int_prop=42,)
-    model2 = SimpleModel(id="test2", int_prop=43,)
+    model1 = SimpleModel(
+        id="test",
+        int_prop=42,
+    )
+    model2 = SimpleModel(
+        id="test2",
+        int_prop=43,
+    )
     ndb_stub._insert_model(model1)
     ndb_stub._insert_model(model2)
 
@@ -154,7 +205,10 @@ def test_fetch_existing_by_le(ndb_stub: datastore_stub.LocalDatastoreStub) -> No
 
 
 def test_count_existing_by_field(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
-    model = SimpleModel(id="test", str_prop="asdf",)
+    model = SimpleModel(
+        id="test",
+        str_prop="asdf",
+    )
     ndb_stub._insert_model(model)
 
     count = SimpleModel.query(SimpleModel.str_prop == "asdf").count()
@@ -208,7 +262,10 @@ def test_put_model_with_repeated_property() -> None:
 
 
 def test_delete_model(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
-    model = SimpleModel(id="test", str_prop="asdf",)
+    model = SimpleModel(
+        id="test",
+        str_prop="asdf",
+    )
     ndb_stub._insert_model(model)
 
     key = ndb.Key(SimpleModel, "test")
@@ -361,11 +418,11 @@ def test_query_count_async(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
     assert count.get_result() == 1
 
 
-def test_query_count_async_not_found(ndb_stub: datastore_stub.LocalDatastoreStub) -> None:
+def test_query_count_async_not_found(
+    ndb_stub: datastore_stub.LocalDatastoreStub,
+) -> None:
     model = SimpleModel(id="test", str_prop="asdf")
     model.put()
 
     count = SimpleModel.query().filter(SimpleModel.str_prop == "foo").count_async()
     assert count.get_result() == 0
-
-
