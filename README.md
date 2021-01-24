@@ -18,6 +18,7 @@ The stub can be inserted into your unit tests as a pytest fixture using [monkeyp
 from unittest.mock import MagicMock
 
 import pytest
+from google.cloud.ndb import _datastore_api
 from InMemoryCloudDatastoreStub.datastore_stub import LocalDatastoreStub
 
 @pytest.fixture()
