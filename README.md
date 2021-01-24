@@ -26,3 +26,21 @@ def ndb_stub(monkeypatch):
     monkeypatch.setattr(_datastore_api, "stub", MagicMock(return_value=stub))
     return stub
 ```
+
+## Contributing
+
+Unit tests, typechecks, and lints can all be run with [`tox`](https://tox.readthedocs.io/en/latest/):
+
+```bash
+# Run everything
+$ tox
+
+# Run unit tests
+$ tox -e py
+
+# Run lint check
+$ tox -e lint
+
+# Run type check
+$ tox -e typecheck
+```
