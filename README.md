@@ -15,7 +15,7 @@ $ pip install InMemoryCloudDatastoreStub
 
 The stub can be inserted into your unit tests as a pytest fixture using [monkeypatch](https://docs.pytest.org/en/stable/monkeypatch.html):
 ```python
-from unittest.mock import magicMock
+from unittest.mock import MagicMock
 
 import pytest
 from InMemoryCloudDatastoreStub.datastore_stub import LocalDatastoreStub
