@@ -233,15 +233,15 @@ class LocalDatastoreStub(datastore_pb2_grpc.DatastoreStub):
         name = prop_filter.property.name
         filter_val = ds_helpers._get_value_from_value_pb(prop_filter.value)
 
-        # Handle ancestor queries. Only supports a single level for now
+        # Handle ancestor queries
         if op == types.PropertyFilter.Operator.HAS_ANCESTOR:
             assert (
                 name == "__key__"
                 and prop_filter.value.WhichOneof("value_type") == "key_value"
             )
-            assert len(prop_filter.value.key_value.path) == 1
             return (
-                prop_filter.value.key_value.path[0] in stored_obj.entity.key.path[:-1]
+                len(prop_filter.value.key_value.path) < len(stored_obj.entity.key.path) and
+                prop_filter.value.key_value.path[:] == stored_obj.entity.key.path[:len(prop_filter.value.key_value.path)]
             )
 
         # If the field we're looking for doesn't exist on this model, bail
